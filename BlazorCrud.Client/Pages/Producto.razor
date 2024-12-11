@@ -1,0 +1,73 @@
+﻿@page "/producto";
+@page "/producto/{IdEditar:int}";
+
+@using Crud.Shared;
+@using BlazorCrud.Client.Services;
+
+@inject IProductosService productoService;
+@inject NavigationManager navegacion;
+
+<h3>@titulo</h3>
+
+<EditForm Model="producto" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+
+    <div class="mb-3">
+        <label class="form-label">Nombre Producto</label>
+        <InputText class="form-control" @bind-Value="producto.Nombre"></InputText>
+        <ValidationMessage For="@(() => producto.Nombre)"></ValidationMessage>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Precio</label>
+        <InputNumber class="form-control" @bind-Value="producto.Precio"></InputNumber>
+        <ValidationMessage For="@(() => producto.Precio)"></ValidationMessage>
+    </div>
+
+    <button class="btn btn-primary" type="submit">
+        @btnTexto
+    </button>
+
+    <a class="btn btn-warning" href="productos">Volver</a>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int IdEditar { get; set; } = 0;
+
+    string titulo = string.Empty;
+    string btnTexto = string.Empty;
+
+    ProductoBIB producto = new ProductoBIB();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IdEditar != 0)
+        {
+            producto = await productoService.Buscar(IdEditar);
+            btnTexto = "Actualizar producto";
+            titulo = "Editar Producto";
+        }
+        else
+        {
+            btnTexto = "Guardar producto";
+            titulo = "Nuevo Producto";
+        }
+    }
+
+    private async Task OnValidSubmit()
+    {
+        int idDevuelto = 0;
+        if (IdEditar == 0)
+        {
+            idDevuelto = await productoService.Guardar(producto);
+        }
+        else
+        {
+            idDevuelto = await productoService.Editar(producto);
+        }
+        if (idDevuelto != 0)
+        {
+            navegacion.NavigateTo("/productos");
+        }
+    }
+}

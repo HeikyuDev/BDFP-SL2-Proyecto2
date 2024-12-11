@@ -1,0 +1,88 @@
+﻿@page "/productos";
+
+@using Crud.Shared;
+@using CurrieTechnologies.Razor.SweetAlert2;
+@using BlazorCrud.Client.Services;
+
+@inject SweetAlertService Swal;
+@inject IProductosService productoService;
+
+<h3>Productos</h3>
+
+<a class="btn btn-success btn-sm mb-3" href="producto">Nuevo Producto</a>
+
+<table class="table">
+	<thead>
+		<tr>
+			<th>Nombre Producto</th>
+			<th>Precio</th>
+			<th></th>
+		</tr>
+	</thead>
+	<tbody>
+
+		@if (listaProducto == null)
+		{
+			<tr>
+				<td colspan="3" asing="center">
+					<img style="width:50px" src="https://media.tenor.com/On7kvXhzml4AAAAj/loading-gif.gif" />
+				</td>
+			</tr>
+		}
+		else
+		{
+			@foreach (var item in listaProducto)
+			{
+				<tr>
+					<td>@item.Nombre</td>
+					<td>@item.Precio</td>
+					<td>
+						<a class="btn btn-primary btn-sm" href="producto/@item.Id">
+							<i class="fas fa-pencil-alt"></i> <!-- Cambiado a Font Awesome -->
+						</a>
+						<button type="button" class="btn btn-danger btn-sm ms-2" @onclick="(()=> Eliminar(item.Id))">
+							<i class="fas fa-trash-alt"></i> <!-- Cambiado a Font Awesome -->
+						</button>
+					</td>
+				</tr>
+			}
+
+		}
+
+
+	</tbody>
+</table>
+
+
+<h3>Productos</h3>
+
+@code {
+	List<ProductoBIB>? listaProducto = null;
+
+	protected override async Task OnInitializedAsync()
+	{
+		listaProducto = await productoService.Lista();
+	}
+
+	private async Task Eliminar(int id)
+	{
+		var resultado = await Swal.FireAsync(new SweetAlertOptions
+			{
+				Title = "Eliminar Producto",
+				Text = "Deseas Eliminar el Producto?",
+				Icon = SweetAlertIcon.Question,
+				ShowCancelButton = true,
+			});
+		if (resultado.IsConfirmed)
+		{
+			var eliminado = await productoService.Eliminar(id);
+
+			if (eliminado)
+			{
+				listaProducto = listaProducto.FindAll(e => e.Id != id);
+			}
+
+		}
+
+	}
+}
